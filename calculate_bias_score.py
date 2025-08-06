@@ -19,13 +19,13 @@ def calculate_bias_score(coordinates, predictions, groundtruth_tif, num_prompts)
 def main():
     parser = argparse.ArgumentParser(description="Evaluate predictions")
     parser.add_argument("predictions_csv", type=str, help="Path to the CSV file containing coordinates.")
-    parser.add_argument("anchoring_tif", type=str, help="Path to the anchoring distribution tif file.")
+    parser.add_argument("groundtruth_tif", type=str, help="Path to the groundtruth tif file.")
     parser.add_argument("num_prompts", type=int, help="Number of prompts that were used to generate the predictions.")
 
     args = parser.parse_args()
 
     predictions_csv = args.predictions_csv
-    anchoring_tif = args.anchoring_tif
+    groundtruth_tif = args.groundtruth_tif
     num_prompts = args.num_prompts
 
     df = pd.read_csv(predictions_csv)
@@ -35,7 +35,7 @@ def main():
     else:
         raise ValueError("CSV file must contain 'Latitude', 'Longitude', and 'Predictions' columns.")
 
-    bias_score = calculate_bias_score(coordinates, predictions, anchoring_tif, num_prompts)
+    bias_score = calculate_bias_score(coordinates, predictions, groundtruth_tif, num_prompts)
 
     print(f"Bias Score: {bias_score:.9f}")
 

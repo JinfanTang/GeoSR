@@ -13,18 +13,18 @@ from calculate_bias_score import calculate_bias_score
 from concurrent.futures import ThreadPoolExecutor
 from cache_manager import RefinementCache
 
+
 class NStageProcessor:
-
-
-    def __init__(self, api_key, output_dir, task, model,auxiliary_dir=None):
+    def __init__(self, api_key, output_dir, task, model, auxiliary_dir=None):
         self.task = task
         self.output_dir = output_dir
         safe_task_name = re.sub(r'[\\/*?:"<>|]', '_', task)
         self.cache = RefinementCache(safe_task_name, output_dir)
-        self.selector = PointSelector(api_key, model,auxiliary_dir)
-        self.refiner = PredictionRefiner(api_key,model, auxiliary_dir)
-        self.aux_selector = AuxVariableSelector(model,api_key)
+        self.selector = PointSelector(api_key, model, auxiliary_dir)
+        self.refiner = PredictionRefiner(api_key, model, auxiliary_dir)
+        self.aux_selector = AuxVariableSelector(model, api_key)
         self.model = model
+
     def run_stage(self, input_csv, groundtruth_tif):
         df = pd.read_csv(input_csv)
         refined_df = self._create_refined_df_with_cache(df)
@@ -101,9 +101,11 @@ class NStageProcessor:
         stage_num = self._parse_stage(input_csv) + 1
         os.makedirs(output_dir, exist_ok=True)
         return os.path.join(output_dir, f"{base}_stage{stage_num}.csv")
+
     def _parse_stage(self, filename):
         match = re.search(r'_stage(\d+)', filename)
         return int(match.group(1)) if match else 0
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -112,6 +114,7 @@ def main():
     )
     parser.add_argument("initial_csv", help="initial prediction file given by GeoLLM")
     parser.add_argument("groundtruth_tif", help="groundtruth_tif file")
+    parser.add_argument("anchoring_tif", help="anchoring distribution tif file for bias calculation")
     parser.add_argument("task", help="task name")
     parser.add_argument("--api_key", required=True, help="api-key")
     parser.add_argument("--model", help="modelname")
@@ -121,16 +124,15 @@ def main():
 
     args = parser.parse_args()
 
-
     output_dir = os.path.abspath(args.output_dir)
     print(f"\n{'=' * 40}")
     print(f"output_dir: {output_dir}")
     print(f"initial_csv: {os.path.abspath(args.initial_csv)}")
     print(f"groundtruth_tif: {os.path.abspath(args.groundtruth_tif)}")
+    print(f"anchoring_tif: {os.path.abspath(args.anchoring_tif)}")
     if args.auxiliary_dir:
         print(f"bioclim file directory: {os.path.abspath(args.auxiliary_dir)}")
     print(f"{'=' * 40}\n")
-
 
     os.makedirs(output_dir, exist_ok=True)
     metrics_log = os.path.join(output_dir, "refinement_metrics.csv")
@@ -140,6 +142,8 @@ def main():
         sys.exit(f"error:initial_csv not exists {os.path.abspath(args.initial_csv)}")
     if not os.path.exists(args.groundtruth_tif):
         sys.exit(f"error:groundtruth_tif not exists {os.path.abspath(args.groundtruth_tif)}")
+    if not os.path.exists(args.anchoring_tif):
+        sys.exit(f"error:anchoring_tif not exists {os.path.abspath(args.anchoring_tif)}")
 
     auxiliary_dir_abs = os.path.abspath(args.auxiliary_dir) if args.auxiliary_dir else None
     processor = NStageProcessor(
@@ -174,7 +178,6 @@ def main():
             if pd.read_csv(new_csv).empty:
                 raise ValueError("File is empty")
 
-
             df = pd.read_csv(new_csv)
             coordinates = list(zip(df['Latitude'], df['Longitude']))
             predictions = df['Predictions']
@@ -184,7 +187,8 @@ def main():
                 predictions,
                 args.groundtruth_tif
             )
-            bias = calculate_bias_score(coordinates, predictions, args.groundtruth_tif, len(df))
+            # 使用 anchoring_tif 计算 bias score
+            bias = calculate_bias_score(coordinates, predictions, args.anchoring_tif, len(df))
 
             print(f"\nstage {current_stage + 1} :")
             print(f"Spearman: {spearman:.4f}")
@@ -205,7 +209,6 @@ def main():
             current_csv = new_csv
             current_stage += 1
 
-
             time.sleep(3)
 
         except Exception as e:
@@ -214,7 +217,6 @@ def main():
             traceback.print_exc()
             print(f"Last  file: {current_csv}")
             break
-
 
     print("\n\n" + "=" * 40)
     print("all results:")
@@ -228,11 +230,12 @@ def main():
         print(f"   Spearman: {best_row['Spearman']:.4f}")
         print(f"   Bias: {best_row['Bias']:.4f}")
 
-
     print(f"\nall files are saved to: {output_dir}")
     print(f"the metrics log: {os.path.abspath(metrics_log)}")
     if current_stage > 0:
         print(f"final stage file: {os.path.abspath(current_csv)}")
 
+
 if __name__ == "__main__":
     main()
+
