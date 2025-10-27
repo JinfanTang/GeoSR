@@ -40,3 +40,5 @@ python GeoSR.py \
 
 Done!
 Refined results will appear in your_output_dir.
+ ## 3 Cite 
+ Our work is being submitted to a journal.Full-vison and Cite form will be uploaded later.
