@@ -4,6 +4,9 @@
 [![EMNLP](https://img.shields.io/badge/EMNLP'26-Findings-orange)](https://arxiv.org/abs/xxxx.xxxxx) [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-green)]()
 
 This repository contains the official implementation of our EMNLP 2026 Findings paper: **GeoGR²: Zero-Shot Geospatial Inference via Geostatistically-Guided Iterative Refinement with LLMs**.
+<div align="center">
+<img alt="Overview" src="arc.png" width="100%"/>
+</div>
 
 > **GeoGR²** (Geostatistically-Guided Iterative Refinement) is a zero-shot framework that leverages LLMs for geospatial inference through an iterative refinement pipeline: **GeoLLM** generates initial predictions, and **GeoGR²** refines them across multiple rounds using geostatistical guidance.
 
