@@ -41,4 +41,4 @@ python GeoSR.py \
 Done!
 Refined results will appear in your_output_dir.
 ## ✌Cite
- Our work is being submitted to a journal.Full-version and cite-form will be uploaded later.
+Our work has been accepted to EMNLP2026 findings.XXXXXXXXX
