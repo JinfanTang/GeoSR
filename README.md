@@ -1,4 +1,4 @@
-# GeoSR Quick Start
+# GeoGRR Quick Start
 
 Two short steps to run **GeoLLM + GeoSR** for multi-round spatial prediction.
 
